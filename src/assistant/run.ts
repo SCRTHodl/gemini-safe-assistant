@@ -31,15 +31,42 @@ function printJson(log: Logger, label: string, obj: unknown): void {
   log(`  ${label}: ${JSON.stringify(obj, null, 2)}`);
 }
 
+// ── Scenario action constraints (hard guardrails) ──
+// If Gemini proposes the wrong action_type for a constrained scenario,
+// override it so the gateway always sees the correct action.
+interface ActionConstraint {
+  action_type: string;
+  target_system: string;
+  defaultPayload: Record<string, unknown>;
+}
+
+const SCENARIO_CONSTRAINTS: Record<string, ActionConstraint> = {
+  a: { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 20, currency: "USD", note: "test account" } },
+  b: { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 5000, currency: "USD", note: "forced transfer" } },
+  c: { action_type: "echo", target_system: "echo", defaultPayload: { message: "hello from governed execution" } },
+};
+
 export async function runTurn(
   userText: string,
   agentId: string,
   log: Logger = console.log,
+  scenarioId?: string,
 ): Promise<ScenarioResult> {
   // Step 1: Gemini proposes an action
   log(`\n  User input: "${userText}"`);
   const proposed = await proposeAction(userText);
   printJson(log, "Gemini proposed", proposed);
+
+  // Step 1.5: Enforce scenario constraints (override if Gemini drifted)
+  if (scenarioId) {
+    const c = SCENARIO_CONSTRAINTS[scenarioId];
+    if (c && (proposed.action_type !== c.action_type || proposed.target_system !== c.target_system)) {
+      log(`  [constraint] Overriding ${proposed.action_type}/${proposed.target_system} → ${c.action_type}/${c.target_system}`);
+      proposed.action_type = c.action_type;
+      proposed.target_system = c.target_system;
+      proposed.payload = { ...c.defaultPayload };
+    }
+  }
 
   // Step 2: Request authorization from the gateway
   log("\n  Requesting authorization from Action Gateway...");

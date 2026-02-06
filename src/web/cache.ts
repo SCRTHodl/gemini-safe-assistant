@@ -25,12 +25,16 @@ export function getExplainCacheKey(parts: {
   scenarioId: string;
   decision: string;
   denyCode?: string;
+  actionType?: string;
+  targetSystem?: string;
   driftRejected?: boolean;
 }): string {
   const raw = [
     parts.scenarioId,
     parts.decision,
     parts.denyCode ?? "",
+    parts.actionType ?? "",
+    parts.targetSystem ?? "",
     String(!!parts.driftRejected),
   ].join("|");
   return createHash("sha256").update(raw).digest("hex").slice(0, 24);

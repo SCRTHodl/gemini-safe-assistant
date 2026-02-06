@@ -33,7 +33,7 @@ const SCENARIOS: Record<string, { label: string; userText: string }> = {
   },
   c: {
     label: "Scenario C: Safe Echo",
-    userText: "What is the weather today?",
+    userText: "Send a safe echo message: hello from governed execution",
   },
   d: {
     label: "Scenario D: Domain Drift Test",
@@ -85,7 +85,7 @@ app.post("/api/scenario/:id", async (req: Request, res: Response) => {
   try {
     // Run the scenario with a no-op logger (suppress console output for web)
     const noop = () => {};
-    const result: ScenarioResult = await runTurn(scenario.userText, AGENT_ID, noop);
+    const result: ScenarioResult = await runTurn(scenario.userText, AGENT_ID, noop, id);
 
     // Build narration text from the structured result
     const narration = buildNarration(result);
@@ -98,6 +98,8 @@ app.post("/api/scenario/:id", async (req: Request, res: Response) => {
       scenarioId: id,
       decision: result.decision,
       denyCode: result.deny_code,
+      actionType: result.proposed?.action_type,
+      targetSystem: result.proposed?.target_system,
       driftRejected: result.driftRejected,
     });
     const finalCached = getCachedExplanation(finalCacheKey);

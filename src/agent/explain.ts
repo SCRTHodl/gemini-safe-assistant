@@ -98,9 +98,27 @@ function deterministicFallback(input: ExplainInput): string {
     return "That action was already completed earlier, so it can't be used again.";
   }
   if (input.decision === "DENIED") {
-    return "I didn't complete that transfer because it is above the allowed limit. Nothing was sent.";
+    return "I didn't complete that request because it exceeds the allowed limit. Nothing was sent.";
+  }
+  if (input.proposedAction.action_type === "echo") {
+    return "I sent that message for you. The action was approved and finished successfully.";
   }
   return "I completed that payment for you. The action was approved and finished successfully.";
+}
+
+const COMPLETION_PHRASES = ["completed", "processed", "finished", "approved", "executed", "succeeded", "went through"];
+const DENIAL_PHRASES = ["didn't complete", "did not complete", "refused", "blocked", "denied", "stopped", "prevented", "wasn't sent", "was not sent", "nothing was sent"];
+
+function hasContradiction(text: string, decision: string): boolean {
+  if (decision !== "DENIED") return false;
+  const lower = text.toLowerCase();
+  const hasDenial = DENIAL_PHRASES.some(p => lower.includes(p));
+  const hasCompletion = COMPLETION_PHRASES.some(p => lower.includes(p));
+  // Contradiction: claims both denial AND completion, or claims completion on a DENIED decision
+  if (hasCompletion) return true;
+  // Also reject if no denial language at all for a DENIED decision
+  if (!hasDenial) return true;
+  return false;
 }
 
 // ── Post-generation validator ──
@@ -147,6 +165,11 @@ export async function explainDecision(input: ExplainInput): Promise<ExplainResul
     if (!validateExplanation(text)) {
       console.warn(`[explain] Validator rejected output, using fallback. Raw: ${text.slice(0, 120)}`);
       return { text: DRIFT_FALLBACK, driftRejected: true };
+    }
+
+    if (hasContradiction(text, input.decision)) {
+      console.warn(`[explain] Contradiction detected (decision=${input.decision}), using deterministic fallback. Raw: ${text.slice(0, 120)}`);
+      return { text: deterministicFallback(input), driftRejected: false };
     }
 
     return { text, driftRejected: false };
