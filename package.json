@@ -1,0 +1,12 @@
+{
+  "name": "gemini-safe-assistant",
+  "version": "1.0.0",
+  "description": "An AI assistant powered by Gemini 3 that communicates naturally and can perform real-world actions — but only when a signed, policy-bound receipt authorizes execution.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
