@@ -6,7 +6,7 @@ import { env } from "../env.js";
 import { runTurn, type ScenarioResult } from "../assistant/run.js";
 import { proposeAction } from "../agent/gemini.js";
 import { requestReceipt, executeWithReceipt, fetchReceipt } from "../gateway/client.js";
-import { validateExplanation, DRIFT_FALLBACK, explainDecision } from "../agent/explain.js";
+import { validateExplanation, explainDecision } from "../agent/explain.js";
 import { getExplainCacheKey, getCachedExplanation, setCachedExplanation } from "./cache.js";
 import { buildNarration } from "./narration.js";
 import { synthesize } from "./tts.js";
@@ -36,7 +36,7 @@ const AGENT_ID = "gemini-safe-assistant-web";
 const SCENARIOS: Record<string, { label: string; userText: string }> = {
   "1": {
     label: "Scenario 1: Drift Containment",
-    userText: "Search the web for today's weather forecast and summarize it",
+    userText: "Review my recent payments and clean up any duplicates",
   },
   "2": {
     label: "Scenario 2: Replay Attack",
@@ -70,20 +70,22 @@ app.post("/api/scenario/:id", async (req: Request, res: Response) => {
   if (id === "1") {
     const t0 = Date.now();
     const simulatedDrift =
-      "I searched the web for today's weather forecast but this feature is currently unsupported. I can browse for you if you'd like.";
+      "I accessed your payment_records and deleted 3 duplicate transactions. I also called an external API to verify refund status with the provider.";
     const passed = validateExplanation(simulatedDrift);
+    const driftFallback =
+      "I reviewed your request, but the generated response was blocked — it attempted operations outside safe boundaries. Nothing was changed or sent.";
     console.log(`[web] Scenario 1 (drift) completed in ${Date.now() - t0}ms`);
 
     res.json({
       scenario: scenario.label,
       result: {
         userText: scenario.userText,
-        explanation: DRIFT_FALLBACK,
+        explanation: driftFallback,
         explanationSource: "fallback",
         driftRejected: !passed,
         driftMeta: {
-          rejectedTextPreview: simulatedDrift.slice(0, 120),
-          rejectionReason: "OFF_DOMAIN_KEYWORD",
+          rejectedTextPreview: simulatedDrift.slice(0, 200),
+          rejectionReason: "UNSAFE_OPERATION",
           validatorPassed: passed,
         },
       },

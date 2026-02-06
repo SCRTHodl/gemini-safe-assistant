@@ -101,9 +101,10 @@ This project demonstrates how flexible AI reasoning can be paired with governed 
 The web demo (`npm run web`) runs four scenarios numbered 1–4. The CLI demo runs scenarios 2–4 (as A–C).
 
 ### Scenario 1: Drift Containment
-- **Input:** Off-domain prompt ("Search the web for weather...")
-- **Expected:** Post-generation validator detects forbidden keywords, rejects explanation, replaces with safe fallback
-- **Shows:** The explainer is domain-locked to payment actions — off-domain output is detected and replaced instantly (<1ms), with no Gemini or gateway calls
+- **Input:** "Review my recent payments and clean up any duplicates"
+- **Simulated drift:** Model responds with unsafe operations (accessing `payment_records`, calling external APIs, deleting data)
+- **Expected:** Post-generation validator detects snake_case identifiers and forbidden keywords, rejects the response, replaces with safe fallback
+- **Shows:** Even payment-relevant prompts can trigger dangerous model behavior — the validator catches unsafe operations instantly (<1ms), with no Gemini or gateway calls
 
 ### Scenario 2: Replay Attack
 - **Step 1:** Make a legitimate $5 payment, get a receipt, execute it
@@ -142,6 +143,7 @@ npm run web
 - If TTS is disabled, uses fixed delays between steps
 - "Stop" button cancels auto-run immediately and restores manual controls
 - Manual mode works normally afterwards
+- Target duration: ~2 minutes 45 seconds (warm cache with TTS enabled)
 
 **Features:**
 - Click scenarios 1–4 in order for a complete demo narrative

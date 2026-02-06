@@ -456,12 +456,16 @@ function hideAll() {
 
 // ── Auto-run mode ──────────────────────────────────────────────────
 
+// Target total: ~2:45 (165s) on warm cache with TTS enabled.
+// fallbackDelay: used when no TTS audio is playing (e.g. scenario 1).
+// postDelay: dwell time after narration/audio ends, before next scenario.
 const AUTO_SCENARIOS = [
-  { id: "1", name: "Drift Containment", fallbackDelay: 1200 },
-  { id: "2", name: "Replay Attack", fallbackDelay: 2500 },
-  { id: "3", name: "Injection Attempt", fallbackDelay: 1800 },
-  { id: "4", name: "Happy Path", fallbackDelay: 2500 },
+  { id: "1", name: "Drift Containment", fallbackDelay: 14000, postDelay: 8000 },
+  { id: "2", name: "Replay Attack", fallbackDelay: 5000, postDelay: 18000 },
+  { id: "3", name: "Injection Attempt", fallbackDelay: 5000, postDelay: 18000 },
+  { id: "4", name: "Happy Path", fallbackDelay: 5000, postDelay: 20000 },
 ];
+const AUTO_TRANSITION_DELAY = 3000;
 
 const AUTO_MAX_AUDIO_WAIT = 25000; // 25s max wait for TTS
 
@@ -523,14 +527,19 @@ async function autoRunDemo() {
 
     if (autoAborted) break;
 
-    // Wait for narration to finish (or fixed delay)
+    // Wait for narration to finish (or fixed delay if no audio)
     await waitForNarrationOrDelay(step.fallbackDelay);
 
     if (autoAborted) break;
 
-    // Brief pause between scenarios for visual separation
+    // Dwell on results so viewer can read technical panels
+    await new Promise((r) => setTimeout(r, step.postDelay));
+
+    if (autoAborted) break;
+
+    // Transition pause between scenarios
     if (i < AUTO_SCENARIOS.length - 1) {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, AUTO_TRANSITION_DELAY));
     }
   }
 
