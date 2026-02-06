@@ -30,6 +30,8 @@ const sourceTag = $("#sourceTag");
 const driftDemoCard = $("#driftDemoCard");
 const driftPreviewText = $("#driftPreviewText");
 const driftValidatorBadge = $("#driftValidatorBadge");
+const replayCard = $("#replayCard");
+const replayReason = $("#replayReason");
 
 // ── Scenario buttons ──
 document.querySelectorAll("[data-scenario]").forEach((btn) => {
@@ -53,18 +55,23 @@ async function runScenario(id) {
       throw new Error(err.error || `HTTP ${res.status}`);
     }
     const data = await res.json();
-    const isDrift = !!data.result.driftRejected;
-
-    // Scenario D: drift demo — no technical panels, no auto-TTS
-    if (isDrift && data.result.driftMeta) {
+    // Scenario 1: drift demo — no technical panels, no auto-TTS
+    if (data.result.driftMeta) {
       renderDriftDemo(data);
       hideStatus();
       return;
     }
 
+    // Scenario 2: replay demo — show step 1 result + replay card
+    if (data.result.replayDenied) {
+      renderReplayDemo(data);
+      hideStatus();
+      return;
+    }
+
+    // Scenarios 3 & 4: standard flow
     renderResult(data);
 
-    // Use explanation text for TTS (not raw narration template)
     const speakText = data.result.explanation || data.narration || "";
     const explainSrc = data.result.explanationSource || "";
 
@@ -85,7 +92,34 @@ async function runScenario(id) {
   }
 }
 
-// ── Render drift demo (Scenario D) ──
+// ── Render replay demo (Scenario 2) ──
+function renderReplayDemo(data) {
+  const r = data.result;
+  const explainSrc = r.explanationSource || "";
+
+  // Render step 1 result panels (plan, action, decision=ALLOW, audit)
+  renderResult(data);
+
+  // Show replay card with step 2 denial
+  replayReason.textContent = r.replayError || "receipt already executed";
+  replayCard.classList.remove("hidden");
+
+  // Show explanation (about replay denial)
+  const speakText = r.explanation || "";
+  if (autoNarrate.checked && speakText) {
+    showStatus("Generating speech...", "loading");
+    fetchAndPlayTts(speakText).then(() => {
+      showSourceTag(explainSrc);
+      hideStatus();
+    });
+  } else if (speakText) {
+    renderExplanationWords(speakText);
+    explanationPanel.classList.remove("hidden");
+    showSourceTag(explainSrc);
+  }
+}
+
+// ── Render drift demo (Scenario 1) ──
 function renderDriftDemo(data) {
   const r = data.result;
   const meta = r.driftMeta;
@@ -407,6 +441,7 @@ function hideAll() {
   explanationError.classList.add("hidden");
   driftLabel.classList.add("hidden");
   driftDemoCard.classList.add("hidden");
+  replayCard.classList.add("hidden");
   sourceTag.classList.add("hidden");
   resetProgressBar();
 }

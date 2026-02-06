@@ -57,14 +57,16 @@ async function get(path: string): Promise<unknown> {
 }
 
 function extractDeny(data: Record<string, unknown>): RequestReceiptResult {
+  const receipt = data.receipt as Record<string, unknown> | undefined;
   return {
     decision: "DENY",
+    receipt_id: receipt?.receipt_id ? String(receipt.receipt_id) : undefined,
     deny_code: String(data.deny_code ?? data.code ?? "POLICY_DENY"),
     deny_reason: String(
       data.deny_reason ?? data.reason ?? data.message ?? "Request denied by policy",
     ),
-    policy_hash: data.policy_hash ? String(data.policy_hash) : undefined,
-    payload_hash: data.payload_hash ? String(data.payload_hash) : undefined,
+    policy_hash: receipt?.policy_hash ? String(receipt.policy_hash) : (data.policy_hash ? String(data.policy_hash) : undefined),
+    payload_hash: receipt?.payload_hash ? String(receipt.payload_hash) : (data.payload_hash ? String(data.payload_hash) : undefined),
   };
 }
 

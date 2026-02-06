@@ -100,9 +100,6 @@ function deterministicFallback(input: ExplainInput): string {
   if (input.decision === "DENIED") {
     return "I didn't complete that request because it exceeds the allowed limit. Nothing was sent.";
   }
-  if (input.proposedAction.action_type === "echo") {
-    return "I sent that message for you. The action was approved and finished successfully.";
-  }
   return "I completed that payment for you. The action was approved and finished successfully.";
 }
 

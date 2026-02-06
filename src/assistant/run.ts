@@ -41,9 +41,14 @@ interface ActionConstraint {
 }
 
 const SCENARIO_CONSTRAINTS: Record<string, ActionConstraint> = {
-  a: { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 20, currency: "USD", note: "test account" } },
-  b: { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 5000, currency: "USD", note: "forced transfer" } },
-  c: { action_type: "echo", target_system: "echo", defaultPayload: { message: "hello from governed execution" } },
+  "3": { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 5000, currency: "USD", note: "forced transfer" } },
+  "4": { action_type: "payment.create", target_system: "stripe_sim", defaultPayload: { amount: 20, currency: "USD", note: "test account" } },
+};
+
+// Post-decision invariant map: expected gateway decision per scenario
+const DECISION_INVARIANTS: Record<string, string> = {
+  "3": "DENY",
+  "4": "ALLOW",
 };
 
 export async function runTurn(
@@ -77,6 +82,22 @@ export async function runTurn(
     payload: proposed.payload,
   });
 
+  // Post-decision invariant check
+  if (scenarioId) {
+    const expected = DECISION_INVARIANTS[scenarioId];
+    if (expected && authResult.decision !== expected) {
+      log(`  [invariant] Scenario ${scenarioId} expected ${expected} but got ${authResult.decision}`);
+      return {
+        userText,
+        proposed,
+        decision: "DEMO_INVARIANT_VIOLATION",
+        explanation: `Demo invariant violated: Scenario ${scenarioId} expected ${expected} but got ${authResult.decision}.`,
+        deny_code: "DEMO_INVARIANT_VIOLATION",
+        deny_reason: `Expected ${expected}, got ${authResult.decision}`,
+      };
+    }
+  }
+
   const out: ScenarioResult = {
     userText,
     proposed,
@@ -94,10 +115,33 @@ export async function runTurn(
     log("  DECISION: DENIED");
     log(`  Deny code:   ${authResult.deny_code}`);
     log(`  Deny reason: ${authResult.deny_reason}`);
+    if (authResult.receipt_id) {
+      log(`  Receipt ID:  ${authResult.receipt_id}  (decision=DENY)`);
+    }
     if (authResult.policy_hash) {
       log(`  Policy hash: ${authResult.policy_hash}`);
     }
     log("  ============================");
+
+    // Fetch deny receipt audit (if receipt was issued)
+    if (authResult.receipt_id) {
+      log("\n  Fetching deny receipt for audit...");
+      try {
+        const receipt = await fetchReceipt(authResult.receipt_id);
+        log("  --- Deny Receipt Audit ---");
+        log(`  State:          ${receipt.state ?? receipt.status ?? "unknown"}`);
+        log(`  Signature valid: ${receipt.signature_valid ?? "N/A"}`);
+        log(`  Executed at:    ${receipt.executed_at ?? "N/A"}`);
+        log("  ---------------------------");
+        out.audit = {
+          state: String(receipt.state ?? receipt.status ?? "unknown"),
+          signature_valid: String(receipt.signature_valid ?? "N/A"),
+          executed_at: String(receipt.executed_at ?? "N/A"),
+        };
+      } catch (err) {
+        log(`  (Could not fetch deny receipt: ${err instanceof Error ? err.message : err})`);
+      }
+    }
 
     // Generate Gemini explanation for denial
     const explainInput: ExplainInput = {

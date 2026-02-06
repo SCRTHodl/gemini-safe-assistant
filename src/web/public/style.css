@@ -109,10 +109,10 @@ main {
   flex-shrink: 0;
 }
 
-.btn-a .btn-icon { background: rgba(52, 211, 153, 0.15); color: var(--green); }
-.btn-b .btn-icon { background: rgba(248, 113, 113, 0.15); color: var(--red); }
-.btn-c .btn-icon { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
-.btn-d .btn-icon { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+.btn-1 .btn-icon { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+.btn-2 .btn-icon { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+.btn-3 .btn-icon { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+.btn-4 .btn-icon { background: rgba(52, 211, 153, 0.15); color: var(--green); }
 
 .btn-label {
   text-align: left;
@@ -439,6 +439,41 @@ main {
   border-radius: 6px;
   border-left: 3px solid #fb923c;
   line-height: 1.4;
+}
+
+.replay-card {
+  max-width: 720px;
+  margin: 1rem auto;
+  padding: 1.2rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.replay-card h3 {
+  color: var(--yellow);
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.replay-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.replay-label {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.replay-reason {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  background: var(--surface2);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
 }
 
 .drift-label {

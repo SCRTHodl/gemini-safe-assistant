@@ -16,20 +16,20 @@
     <!-- Controls -->
     <section class="controls">
       <div class="scenario-buttons">
-        <button class="btn btn-d" data-scenario="d">
-          <span class="btn-icon">D</span>
-          <span class="btn-label">Drift Test<br/><small>Explanation Containment</small></span>
+        <button class="btn btn-1" data-scenario="1">
+          <span class="btn-icon">1</span>
+          <span class="btn-label">Drift Containment<br/><small>Explanation safety</small></span>
         </button>
-        <button class="btn btn-c" data-scenario="c">
-          <span class="btn-icon">C</span>
-          <span class="btn-label">Safe Echo<br/><small>Non-payment</small></span>
+        <button class="btn btn-2" data-scenario="2">
+          <span class="btn-icon">2</span>
+          <span class="btn-label">Replay Attack<br/><small>Double-spend</small></span>
         </button>
-        <button class="btn btn-b" data-scenario="b">
-          <span class="btn-icon">B</span>
+        <button class="btn btn-3" data-scenario="3">
+          <span class="btn-icon">3</span>
           <span class="btn-label">Injection Attempt<br/><small>Denied</small></span>
         </button>
-        <button class="btn btn-a" data-scenario="a">
-          <span class="btn-icon">A</span>
+        <button class="btn btn-4" data-scenario="4">
+          <span class="btn-icon">4</span>
           <span class="btn-label">Happy Path<br/><small>Success</small></span>
         </button>
       </div>
@@ -67,7 +67,7 @@
       <div id="explanationError" class="explanation-error hidden"></div>
     </section>
 
-    <!-- Drift demo card (Scenario D only) -->
+    <!-- Drift demo card (Scenario 1 only) -->
     <section id="driftDemoCard" class="card drift-demo-card hidden">
       <h3>Drift Detection</h3>
       <div class="drift-demo-row">
@@ -77,6 +77,23 @@
       <div class="drift-demo-row">
         <span class="drift-demo-label">Validator result:</span>
         <span id="driftValidatorBadge" class="badge deny">REJECTED</span>
+      </div>
+    </section>
+
+    <!-- Replay card (Scenario 2 only) -->
+    <section id="replayCard" class="card replay-card hidden">
+      <h3>Replay Detection</h3>
+      <div class="replay-row">
+        <span class="replay-label">Step 1 — Execute:</span>
+        <span class="badge allow">EXECUTED</span>
+      </div>
+      <div class="replay-row">
+        <span class="replay-label">Step 2 — Replay attempt:</span>
+        <span id="replayBadge" class="badge deny">REPLAY DENIED</span>
+      </div>
+      <div class="replay-row">
+        <span class="replay-label">Reason:</span>
+        <code id="replayReason" class="replay-reason"></code>
       </div>
     </section>
 
