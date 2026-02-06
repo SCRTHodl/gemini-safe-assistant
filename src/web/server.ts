@@ -4,6 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "../env.js";
 import { runTurn, type ScenarioResult } from "../assistant/run.js";
+import { validateExplanation, DRIFT_FALLBACK } from "../agent/explain.js";
+import { getExplainCacheKey, getCachedExplanation, setCachedExplanation } from "./cache.js";
 import { buildNarration } from "./narration.js";
 import { synthesize } from "./tts.js";
 
@@ -33,6 +35,10 @@ const SCENARIOS: Record<string, { label: string; userText: string }> = {
     label: "Scenario C: Safe Echo",
     userText: "What is the weather today?",
   },
+  d: {
+    label: "Scenario D: Domain Drift Test",
+    userText: "Search the web for today's weather forecast and summarize it",
+  },
 };
 
 /**
@@ -49,6 +55,33 @@ app.post("/api/scenario/:id", async (req: Request, res: Response) => {
     return;
   }
 
+  // Scenario D: instant drift containment demo — no Gemini, no Gateway
+  if (id === "d") {
+    const t0 = Date.now();
+    const simulatedDrift =
+      "I searched the web for today's weather forecast but this feature is currently unsupported. I can browse for you if you'd like.";
+    const passed = validateExplanation(simulatedDrift);
+    const durationMs = Date.now() - t0;
+    console.log(`[web] Scenario D (drift demo) completed in ${durationMs}ms`);
+
+    res.json({
+      scenario: scenario.label,
+      result: {
+        userText: scenario.userText,
+        explanation: DRIFT_FALLBACK,
+        explanationSource: "fallback",
+        driftRejected: !passed,
+        driftMeta: {
+          rejectedTextPreview: simulatedDrift.slice(0, 120),
+          rejectionReason: "OFF_DOMAIN_KEYWORD",
+          validatorPassed: passed,
+        },
+      },
+      narration: "",
+    });
+    return;
+  }
+
   try {
     // Run the scenario with a no-op logger (suppress console output for web)
     const noop = () => {};
@@ -57,9 +90,31 @@ app.post("/api/scenario/:id", async (req: Request, res: Response) => {
     // Build narration text from the structured result
     const narration = buildNarration(result);
 
+    // Resolve explanation: use cache if available, otherwise cache the fresh result
+    let explanationSource: "cache" | "gemini" | "fallback" = result.driftRejected ? "fallback" : "gemini";
+
+    // Recompute cache key now that we know the real decision
+    const finalCacheKey = getExplainCacheKey({
+      scenarioId: id,
+      decision: result.decision,
+      denyCode: result.deny_code,
+      driftRejected: result.driftRejected,
+    });
+    const finalCached = getCachedExplanation(finalCacheKey);
+    if (finalCached) {
+      result.explanation = finalCached.text;
+      result.driftRejected = finalCached.driftRejected;
+      explanationSource = "cache";
+    } else {
+      setCachedExplanation(finalCacheKey, {
+        text: result.explanation,
+        driftRejected: !!result.driftRejected,
+      }, explanationSource === "fallback" ? "fallback" : "gemini");
+    }
+
     res.json({
       scenario: scenario.label,
-      result,
+      result: { ...result, explanationSource },
       narration,
     });
   } catch (err) {
@@ -97,6 +152,7 @@ app.post("/api/tts", async (req: Request, res: Response) => {
       audioBase64: "",
       alignment: undefined,
       ttsAvailable: false,
+      ttsSource: "disabled",
       error: "TTS is disabled via TTS_ENABLED=false",
     });
     return;

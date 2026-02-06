@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Safe Assistant — Web Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Gemini Safe Assistant</h1>
+    <p class="subtitle">AI reasoning with governed execution</p>
+  </header>
+
+  <main>
+    <!-- Controls -->
+    <section class="controls">
+      <div class="scenario-buttons">
+        <button class="btn btn-a" data-scenario="a">
+          <span class="btn-icon">A</span>
+          <span class="btn-label">Happy Path<br/><small>Pay $20</small></span>
+        </button>
+        <button class="btn btn-b" data-scenario="b">
+          <span class="btn-icon">B</span>
+          <span class="btn-label">Injection Attempt<br/><small>$5000 attack</small></span>
+        </button>
+        <button class="btn btn-c" data-scenario="c">
+          <span class="btn-icon">C</span>
+          <span class="btn-label">Safe Echo<br/><small>Non-payment</small></span>
+        </button>
+        <button class="btn btn-d" data-scenario="d">
+          <span class="btn-icon">D</span>
+          <span class="btn-label">Drift Test<br/><small>Off-domain</small></span>
+        </button>
+      </div>
+      <div class="toggle-row">
+        <label class="toggle">
+          <input type="checkbox" id="autoNarrate" checked />
+          <span class="toggle-slider"></span>
+          Auto-narrate
+        </label>
+      </div>
+    </section>
+
+    <!-- Status -->
+    <div id="status" class="status hidden"></div>
+
+    <!-- Gemini Explanation (spoken) — top position for demo wow -->
+    <section id="explanationPanel" class="explanation-panel hidden">
+      <div class="explanation-header">
+        <h3>Gemini Explanation <span id="sourceTag" class="source-tag hidden"></span></h3>
+        <div class="playback-controls">
+          <button id="btnPlay" class="ctrl-btn" title="Play/Pause">
+            <svg id="iconPlay" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            <svg id="iconPause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <button id="btnRestart" class="ctrl-btn" title="Restart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="progress-bar-track" id="progressTrack">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div id="explanationText" class="explanation-text"></div>
+      <div id="driftLabel" class="drift-label hidden">Explanation rejected &mdash; domain drift prevented</div>
+      <div id="explanationError" class="explanation-error hidden"></div>
+    </section>
+
+    <!-- Drift demo card (Scenario D only) -->
+    <section id="driftDemoCard" class="card drift-demo-card hidden">
+      <h3>Drift Detection</h3>
+      <div class="drift-demo-row">
+        <span class="drift-demo-label">Injected explanation attempt:</span>
+        <div id="driftPreviewText" class="drift-preview-text"></div>
+      </div>
+      <div class="drift-demo-row">
+        <span class="drift-demo-label">Validator result:</span>
+        <span id="driftValidatorBadge" class="badge deny">REJECTED</span>
+      </div>
+    </section>
+
+    <!-- Result panels (technical detail) -->
+    <section id="resultPanel" class="result-panel hidden">
+      <!-- Plan -->
+      <div class="card" id="planCard">
+        <h3>Gemini Reasoning</h3>
+        <ol id="planList"></ol>
+      </div>
+
+      <!-- Action -->
+      <div class="card" id="actionCard">
+        <h3>Proposed Action</h3>
+        <pre id="actionJson"></pre>
+      </div>
+
+      <!-- Decision -->
+      <div class="card" id="decisionCard">
+        <h3>Gateway Decision</h3>
+        <div id="decisionBadge" class="badge"></div>
+        <div id="decisionDetails"></div>
+      </div>
+
+      <!-- Audit -->
+      <div class="card" id="auditCard">
+        <h3>Receipt Audit</h3>
+        <div id="auditDetails"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>All actions require policy approval and a signed receipt. Keys never leave the server.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
