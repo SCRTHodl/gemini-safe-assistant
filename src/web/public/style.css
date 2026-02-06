@@ -490,6 +490,56 @@ main {
   border-radius: 6px;
 }
 
+/* Auto-mode banner */
+.auto-banner {
+  max-width: 800px;
+  margin: 0 auto 0.75rem;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius);
+}
+
+.auto-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.auto-badge-live {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--yellow);
+  color: #1a1d27;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.auto-stop-btn {
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--red);
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--red);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.auto-stop-btn:hover {
+  background: rgba(248, 113, 113, 0.25);
+}
+
 /* Utilities */
 .hidden { display: none !important; }
 

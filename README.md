@@ -130,6 +130,19 @@ npm run web
 # Open http://localhost:8788
 ```
 
+**Pages:**
+- `/` — Home page with "Start Demo" (manual) and "Run Full Demo (Auto)" buttons
+- `/demo` — Interactive demo with scenario buttons 1–4
+- `/demo?auto=1` — Auto-run mode: plays all 4 scenarios sequentially, hands-free
+
+**Auto-run mode:**
+- Runs scenarios 1→2→3→4 automatically — ideal for screen recording
+- Shows a live "AUTO" banner with step progress ("Step 2 of 4 — Replay Attack")
+- If TTS is enabled, waits for audio to finish before advancing (25s max timeout)
+- If TTS is disabled, uses fixed delays between steps
+- "Stop" button cancels auto-run immediately and restores manual controls
+- Manual mode works normally afterwards
+
 **Features:**
 - Click scenarios 1–4 in order for a complete demo narrative
 - Scenario 1: instant drift containment (no API calls)

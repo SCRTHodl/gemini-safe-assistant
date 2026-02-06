@@ -19,6 +19,15 @@ app.use(express.json());
 
 // Serve static frontend files
 const publicDir = path.resolve(__dirname, "public");
+
+// Explicit page routes (before static middleware)
+app.get("/", (_req: Request, res: Response) => {
+  res.sendFile(path.join(publicDir, "home.html"));
+});
+app.get("/demo", (_req: Request, res: Response) => {
+  res.sendFile(path.join(publicDir, "index.html"));
+});
+
 app.use(express.static(publicDir));
 
 const AGENT_ID = "gemini-safe-assistant-web";

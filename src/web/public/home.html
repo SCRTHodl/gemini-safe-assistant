@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Safe Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .home-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 1.5rem;
+      text-align: center;
+    }
+    .home-hero p {
+      color: var(--text-dim);
+      max-width: 480px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    .home-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: 1px solid var(--border);
+    }
+    .home-btn-primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .home-btn-primary:hover {
+      background: #5a7ae6;
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .home-btn-auto {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .home-btn-auto:hover {
+      background: var(--surface2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .home-btn-auto .auto-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--yellow);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gemini Safe Assistant</h1>
+    <p class="subtitle">AI reasoning with governed execution</p>
+  </header>
+
+  <main>
+    <div class="home-hero">
+      <p>
+        Every AI action requires a signed, policy-bound receipt.
+        Every decision &mdash; even a refusal &mdash; is provable.
+      </p>
+      <div class="home-actions">
+        <a href="/demo" class="home-btn home-btn-primary">Start Demo</a>
+        <a href="/demo?auto=1" class="home-btn home-btn-auto">
+          Run Full Demo
+          <span class="auto-badge">Auto</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>All actions require policy approval and a signed receipt. Keys never leave the server.</p>
+  </footer>
+</body>
+</html>

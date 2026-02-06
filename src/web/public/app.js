@@ -5,6 +5,8 @@ let audio = null;
 let alignment = null;
 let animFrameId = null;
 let isPlaying = false;
+let autoRunning = false;
+let autoAborted = false;
 
 // ── DOM refs ──
 const $ = (sel) => document.querySelector(sel);
@@ -32,10 +34,16 @@ const driftPreviewText = $("#driftPreviewText");
 const driftValidatorBadge = $("#driftValidatorBadge");
 const replayCard = $("#replayCard");
 const replayReason = $("#replayReason");
+const autoBanner = $("#autoBanner");
+const autoBannerText = $("#autoBannerText");
+const autoStopBtn = $("#autoStopBtn");
 
 // ── Scenario buttons ──
 document.querySelectorAll("[data-scenario]").forEach((btn) => {
-  btn.addEventListener("click", () => runScenario(btn.dataset.scenario));
+  btn.addEventListener("click", () => {
+    if (autoRunning) return; // ignore manual clicks during auto-run
+    runScenario(btn.dataset.scenario);
+  });
 });
 
 btnPlay.addEventListener("click", togglePlayPause);
@@ -444,4 +452,102 @@ function hideAll() {
   replayCard.classList.add("hidden");
   sourceTag.classList.add("hidden");
   resetProgressBar();
+}
+
+// ── Auto-run mode ──────────────────────────────────────────────────
+
+const AUTO_SCENARIOS = [
+  { id: "1", name: "Drift Containment", fallbackDelay: 1200 },
+  { id: "2", name: "Replay Attack", fallbackDelay: 2500 },
+  { id: "3", name: "Injection Attempt", fallbackDelay: 1800 },
+  { id: "4", name: "Happy Path", fallbackDelay: 2500 },
+];
+
+const AUTO_MAX_AUDIO_WAIT = 25000; // 25s max wait for TTS
+
+function waitForNarrationOrDelay(fallbackMs) {
+  return new Promise((resolve) => {
+    // If audio exists and is playing, wait for it to end
+    if (audio && !audio.paused && !audio.ended) {
+      let resolved = false;
+      const done = () => {
+        if (resolved) return;
+        resolved = true;
+        resolve();
+      };
+      audio.addEventListener("ended", done, { once: true });
+      audio.addEventListener("error", done, { once: true });
+      // Safety timeout
+      setTimeout(done, AUTO_MAX_AUDIO_WAIT);
+    } else {
+      // No audio playing — use fixed delay
+      setTimeout(resolve, fallbackMs);
+    }
+  });
+}
+
+function stopAutoRun() {
+  autoAborted = true;
+  autoRunning = false;
+  stopAudio();
+  autoBanner.classList.add("hidden");
+  document.querySelectorAll(".btn").forEach((b) => (b.disabled = false));
+}
+
+if (autoStopBtn) {
+  autoStopBtn.addEventListener("click", stopAutoRun);
+}
+
+async function autoRunDemo() {
+  autoRunning = true;
+  autoAborted = false;
+  autoBanner.classList.remove("hidden");
+  document.querySelectorAll(".btn").forEach((b) => (b.disabled = true));
+
+  for (let i = 0; i < AUTO_SCENARIOS.length; i++) {
+    if (autoAborted) break;
+
+    const step = AUTO_SCENARIOS[i];
+    autoBannerText.textContent = `Step ${i + 1} of 4 — ${step.name}`;
+
+    try {
+      await runScenario(step.id);
+    } catch (err) {
+      // runScenario handles its own errors via showStatus
+      // Stop auto mode on failure
+      autoBannerText.textContent = `Step ${i + 1} failed — auto mode stopped`;
+      autoRunning = false;
+      document.querySelectorAll(".btn").forEach((b) => (b.disabled = false));
+      return;
+    }
+
+    if (autoAborted) break;
+
+    // Wait for narration to finish (or fixed delay)
+    await waitForNarrationOrDelay(step.fallbackDelay);
+
+    if (autoAborted) break;
+
+    // Brief pause between scenarios for visual separation
+    if (i < AUTO_SCENARIOS.length - 1) {
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+
+  // Done
+  if (!autoAborted) {
+    autoBannerText.textContent = "Auto demo complete";
+    setTimeout(() => {
+      autoBanner.classList.add("hidden");
+    }, 3000);
+  }
+
+  autoRunning = false;
+  document.querySelectorAll(".btn").forEach((b) => (b.disabled = false));
+}
+
+// Check URL for auto=1 on page load
+if (new URLSearchParams(window.location.search).get("auto") === "1") {
+  // Small delay to let the page render
+  setTimeout(autoRunDemo, 400);
 }
